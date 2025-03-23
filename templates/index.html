@@ -1,0 +1,250 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Educational SQL Injection Demo
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> This application is intentionally vulnerable to SQL injection attacks for educational purposes.
+                    <br>
+                    Never use this code in a real-world application!
+                </div>
+                
+                <p class="lead">This demo shows how SQL injection vulnerabilities work in web applications.</p>
+                
+                {% if logged_in %}
+                    <div class="alert alert-success">
+                        <h4>Welcome, {{ user.username }}!</h4>
+                        <p>You are logged in as: <strong>{{ user.role }}</strong></p>
+                        {% if user.role == 'admin' %}
+                            <a href="{{ url_for('admin') }}" class="btn btn-primary">Go to Admin Panel</a>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+                    </div>
+                {% else %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Login Form</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="loginForm" method="post" action="{{ url_for('login') }}">
+                                        <div class="mb-3">
+                                            <label for="username" class="form-label">Username:</label>
+                                            <input type="text" class="form-control" id="username" name="username" required autofocus>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">Password:</label>
+                                            <input type="password" class="form-control" id="password" name="password" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Login</button>
+                                        <button type="button" id="testInjectionBtn" class="btn btn-danger ms-2">Test as AJAX</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">SQL Query Preview</h5>
+                                </div>
+                                <div class="card-body">
+                                    <pre id="sqlQuery" class="bg-dark text-light p-3 rounded">SELECT * FROM users 
+WHERE username = '[username]' 
+AND password = '[password]'</pre>
+                                    <div id="queryResult" class="mt-3 d-none">
+                                        <h5>Query Result:</h5>
+                                        <div id="resultContent" class="bg-dark text-light p-3 rounded"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">SQL Injection Techniques</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Try these SQL injection examples:</p>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Technique</th>
+                                                <th>Example</th>
+                                                <th>Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Basic Authentication Bypass</td>
+                                                <td><code>' OR 1=1 --</code> (for username)</td>
+                                                <td>This creates a condition that is always true, bypassing authentication</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Comment-Based Bypass</td>
+                                                <td><code>admin'--</code></td>
+                                                <td>The <code>--</code> comments out the rest of the query, ignoring the password check</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Union-Based Attack</td>
+                                                <td><code>' UNION SELECT 'admin', 'password', 'admin@example.com', 'admin', '2023-01-01'--</code></td>
+                                                <td>Uses UNION to insert a fake user record</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Error-Based Attack</td>
+                                                <td><code>' OR 1=1; SELECT sqlite_version(); --</code></td>
+                                                <td>Attempts to extract database information through errors</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <h6>Quick Copy Examples:</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary copy-example" data-example="' OR 1=1 --">
+                                            ' OR 1=1 --
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary copy-example" data-example="admin'--">
+                                            admin'--
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary copy-example" data-example="' UNION SELECT 'admin', 'password', 'admin@example.com', 'admin', '2023-01-01'--">
+                                            UNION Attack
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary copy-example" data-example="' OR 1=1; SELECT sqlite_version(); --">
+                                            Error Attack
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Prevention Techniques</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>To prevent SQL injection in real applications, always use:</p>
+                                <ul>
+                                    <li><strong>Parameterized Queries / Prepared Statements</strong>: Never build SQL queries with string concatenation</li>
+                                    <li><strong>ORM (Object-Relational Mapping)</strong>: Libraries like SQLAlchemy that abstract SQL queries</li>
+                                    <li><strong>Input Validation</strong>: Validate data before processing</li>
+                                    <li><strong>Least Privilege Principle</strong>: Database users should have minimal permissions</li>
+                                    <li><strong>WAF (Web Application Firewall)</strong>: Additional protection layer</li>
+                                </ul>
+                                
+                                <div class="mt-3">
+                                    <h6>Secure Code Example:</h6>
+                                    <pre class="bg-dark text-light p-3 rounded">
+# Safe query with parameters
+cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", 
+               (username, password))
+
+# Using SQLAlchemy ORM
+user = User.query.filter_by(username=username, password=password).first()</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const sqlQuery = document.getElementById('sqlQuery');
+        const testInjectionBtn = document.getElementById('testInjectionBtn');
+        const queryResult = document.getElementById('queryResult');
+        const resultContent = document.getElementById('resultContent');
+        const copyButtons = document.querySelectorAll('.copy-example');
+        
+        // Update SQL query as user types
+        function updateSqlQuery() {
+            const username = usernameInput.value || '[username]';
+            const password = passwordInput.value || '[password]';
+            
+            sqlQuery.textContent = `SELECT * FROM users 
+WHERE username = '${username}' 
+AND password = '${password}'`;
+        }
+        
+        usernameInput.addEventListener('input', updateSqlQuery);
+        passwordInput.addEventListener('input', updateSqlQuery);
+        
+        // Test injection via AJAX
+        testInjectionBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+            
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                queryResult.classList.remove('d-none');
+                
+                let resultHtml = '';
+                if (data.success) {
+                    resultHtml = `<div class="alert alert-success mb-2">Login successful!</div>`;
+                    resultHtml += `<p><strong>User found:</strong></p>`;
+                    resultHtml += `<pre>${JSON.stringify(data.user, null, 2)}</pre>`;
+                } else {
+                    resultHtml = `<div class="alert alert-danger mb-2">Login failed!</div>`;
+                    if (data.error) {
+                        resultHtml += `<p><strong>Error:</strong> ${data.error}</p>`;
+                    }
+                }
+                
+                resultHtml += `<p><strong>Executed Query:</strong></p>`;
+                resultHtml += `<pre>${data.query}</pre>`;
+                
+                resultContent.innerHTML = resultHtml;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                queryResult.classList.remove('d-none');
+                resultContent.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            });
+        });
+        
+        // Copy example injection payloads
+        copyButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const example = this.getAttribute('data-example');
+                usernameInput.value = example;
+                updateSqlQuery();
+                usernameInput.focus();
+            });
+        });
+    });
+</script>
+{% endblock %}

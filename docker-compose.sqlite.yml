@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  # Web application service with SQLite database (simpler setup)
+  web:
+    build: .
+    ports:
+      - "5000:5000"  # Expose the web application on port 5000
+    environment:
+      - SESSION_SECRET=your_secret_key_change_in_production
+      # No DATABASE_URL means it will use SQLite
+    restart: always
+    # Uncomment these lines to enable live code reloading during development
+    # volumes:
+    #   - ./:/app

@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # Web application service
+  web:
+    build: .
+    ports:
+      - "5000:5000"  # Expose the web application on port 5000
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/sqli_demo
+      - SESSION_SECRET=your_secret_key_change_in_production
+    depends_on:
+      - db  # Ensure database is started before web app
+    restart: always
+    # Uncomment these lines to enable live code reloading during development
+    # volumes:
+    #   - ./:/app
+    # Remove these for production use
+    
+  # PostgreSQL database service
+  db:
+    image: postgres:14  # Using PostgreSQL 14
+    ports:
+      - "5432:5432"  # Expose PostgreSQL on port 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres  # Simple password for demo purposes only
+      - POSTGRES_DB=sqli_demo  # Database name
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist database data
+    restart: always
+
+# Persistent volumes
+volumes:
+  postgres_data:  # Volume for PostgreSQL data
+
+# NOTE: For SQLite mode (without PostgreSQL):
+# 1. Comment out or remove the 'db' service
+# 2. Remove DATABASE_URL environment variable from 'web' service
+# 3. Remove 'depends_on' section from 'web' service

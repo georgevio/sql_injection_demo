@@ -1,0 +1,133 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    SQL Injection Demo: Admin Panel
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">Welcome, {{ user.username }}!</h4>
+                    <p>This admin panel shows login attempts and SQL queries that have been executed.</p>
+                </div>
+                
+                <h4 class="mt-4 mb-3">Recent Login Attempts</h4>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>SQL Query</th>
+                                <th>Status</th>
+                                <th>IP Address</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in login_attempts %}
+                            <tr class="{{ 'table-success' if attempt.success else 'table-danger' }}">
+                                <td>{{ attempt.id }}</td>
+                                <td>{{ attempt.username }}</td>
+                                <td>
+                                    <pre class="mb-0 p-2 bg-dark text-light rounded">{{ attempt.query }}</pre>
+                                </td>
+                                <td>
+                                    {% if attempt.success %}
+                                    <span class="badge bg-success">Success</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ attempt.ip_address }}</td>
+                                <td>{{ attempt.timestamp }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4">
+                    <h4 class="mb-3">SQL Injection Detection</h4>
+                    <div class="card">
+                        <div class="card-body">
+                            <p>Patterns that may indicate SQL injection attempts:</p>
+                            <ul>
+                                <li>Single quotes <code>'</code> or double quotes <code>"</code> in input fields</li>
+                                <li>SQL keywords like <code>OR</code>, <code>UNION</code>, <code>SELECT</code>, <code>FROM</code></li>
+                                <li>Comment markers like <code>--</code> or <code>#</code></li>
+                                <li>Multiple SQL statements (using <code>;</code>)</li>
+                                <li>Boolean conditions like <code>1=1</code> or <code>1=2</code></li>
+                            </ul>
+                            
+                            <div class="alert alert-warning mt-3">
+                                <strong>Administrator Note:</strong> This system is intentionally vulnerable for educational purposes. 
+                                In real production systems, use proper security measures to prevent SQL injection.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h4 class="mb-3">Actions</h4>
+                    <a href="{{ url_for('logout') }}" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">
+                        <i class="fas fa-home me-1"></i> Return to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh login attempts every 10 seconds
+        setInterval(function() {
+            fetch('/api/login_attempts')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('table tbody');
+                    if (!tableBody) return;
+                    
+                    // Clear current table
+                    tableBody.innerHTML = '';
+                    
+                    // Add latest attempts
+                    data.forEach(attempt => {
+                        const row = document.createElement('tr');
+                        row.className = attempt.success ? 'table-success' : 'table-danger';
+                        
+                        row.innerHTML = `
+                            <td>${attempt.id}</td>
+                            <td>${attempt.username}</td>
+                            <td>
+                                <pre class="mb-0 p-2 bg-dark text-light rounded">${attempt.query}</pre>
+                            </td>
+                            <td>
+                                ${attempt.success 
+                                    ? '<span class="badge bg-success">Success</span>' 
+                                    : '<span class="badge bg-danger">Failed</span>'}
+                            </td>
+                            <td>${attempt.ip_address}</td>
+                            <td>${attempt.timestamp}</td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error refreshing login attempts:', error));
+        }, 10000);
+    });
+</script>
+{% endblock %}
