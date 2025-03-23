@@ -23,6 +23,7 @@ SQL injection remains one of the most dangerous web application security flaws. 
 - Only run this application in controlled, educational settings
 
 ## Features
+![SQLi1](./pics/sql1.png)
 
 1. **Vulnerable Login Form:** Demonstrates classic SQL injection through authentication bypass
 2. **Admin Panel:** Shows executed queries and login attempts
@@ -82,7 +83,7 @@ If you prefer a simpler setup without a separate database container:
 7. Access the application at: http://localhost:5000
 
 ## SQL Injection Examples
-
+![SQLi1](./pics/sql2.png)
 ### Authentication Bypass
 
 Try these payloads in the username field (leave password blank or enter anything):
